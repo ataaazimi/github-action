@@ -1,0 +1,92 @@
+name: Build and Deploy Website
+
+# When should this action run?
+on:
+  push:
+    branches: [ main ]  # Run when code is pushed to main branch
+  pull_request:
+    branches: [ main ]  # Run when someone creates a pull request
+
+# What jobs should run?
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest  # Use Ubuntu virtual machine
+    
+    steps:
+    # Step 1: Get the code
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    # Step 2: Validate HTML
+    - name: 🔍 Validate HTML
+      run: |
+        echo "Checking HTML files..."
+        # Check if HTML files exist
+        if [ -f "index.html" ]; then
+          echo "✅ index.html found"
+        else
+          echo "❌ index.html not found"
+          exit 1
+        fi
+        
+        if [ -f "test.html" ]; then
+          echo "✅ test.html found"
+        else
+          echo "❌ test.html not found"
+          exit 1
+        fi
+        
+        echo "All HTML files validated successfully!"
+    
+    # Step 3: Setup Node.js (for testing)
+    - name: 🟢 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+    
+    # Step 4: Run a simple test
+    - name: 🧪 Run Tests
+      run: |
+        echo "Running website tests..."
+        # Create a simple test script
+        cat > test.js << 'EOF'
+        const fs = require('fs');
+        
+        console.log('🧪 Testing HTML files...');
+        
+        // Test 1: Check if index.html contains required content
+        const indexContent = fs.readFileSync('index.html', 'utf8');
+        if (indexContent.includes('GitHub Actions Demo')) {
+          console.log('✅ Test 1 passed: index.html has correct title');
+        } else {
+          console.log('❌ Test 1 failed: Missing title in index.html');
+          process.exit(1);
+        }
+        
+        // Test 2: Check if HTML is well-formed (basic check)
+        if (indexContent.includes('<html') && indexContent.includes('</html>')) {
+          console.log('✅ Test 2 passed: HTML structure looks good');
+        } else {
+          console.log('❌ Test 2 failed: HTML structure issues');
+          process.exit(1);
+        }
+        
+        console.log('🎉 All tests passed!');
+        EOF
+        
+        node test.js
+    
+    # Step 5: Deploy to GitHub Pages (only on main branch)
+    - name: 🚀 Deploy to GitHub Pages
+      if: github.ref == 'refs/heads/main'
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: .
+        exclude_assets: '.github,test.js,test.html'
+
+    # Step 6: Show success message
+    - name: ✅ Success
+      run: |
+        echo "🎉 Workflow completed successfully!"
+        echo "Your website should be available at: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}"
