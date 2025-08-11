@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Page</title>
+</head>
+<body>
+    <h1 id="test-title">Test Page</h1>
+    <p>This page is used for testing our GitHub Action</p>
+    
+    <script>
+        // Simple test script
+        function runTests() {
+            const title = document.getElementById('test-title');
+            if (title && title.textContent === 'Test Page') {
+                console.log('✅ Test passed: Title is correct');
+                return true;
+            } else {
+                console.log('❌ Test failed: Title is incorrect');
+                return false;
+            }
+        }
+        
+        // Run test when page loads
+        window.onload = function() {
+            const result = runTests();
+            document.body.style.backgroundColor = result ? '#d4edda' : '#f8d7da';
+        };
+    </script>
+</body>
+</html>
